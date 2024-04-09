@@ -4,7 +4,8 @@ import api from '../service/api'
 class Upload extends React.Component {
     state = {
         selectedFile: null,
-        uploading: false
+        uploading: false,
+        error: null
     };
 
     displayFileName = (event) => {
@@ -23,12 +24,18 @@ class Upload extends React.Component {
         try {
             const response = await api.post("/upload", formData);
             console.log('File uploaded successfully:', response.data);
-            // Do something with the response if needed
+            this.setState({ error: null });
         } catch (error) {
-            console.error('Error uploading file:', error);
-            // Handle error appropriately
+            if (error.response) {
+                console.error('Error uploading file:', error.response.data);
+                this.setState({ error: error.response.data });
+            } else {
+                console.error('Error uploading file:', error);
+                this.setState({ error: 'An unexpected error occurred.' });
+            }
         } finally {
             this.setState({ uploading: false });
+            this.setState({ selectedFile: null });
         }
     };
 
@@ -61,6 +68,11 @@ class Upload extends React.Component {
                                 </div>
                                 <input type="submit" value="Submit" className="btn btn-primary btn-block" />
                             </form>
+                        )}
+                        {this.state.error && (
+                            <div className="alert alert-danger mt-3" role="alert">
+                                {this.state.error}
+                            </div>
                         )}
                         <hr />
                     </div>

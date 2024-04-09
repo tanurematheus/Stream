@@ -3,18 +3,18 @@ const mongodb = require('mongodb');
 const { connectToMongoDB } = require('../config/mongo_connection');
 const { disconnectToMongoDB } = require('../config/mongo_disconnect');
 
-const upload_new_video = async (metadata, filename, path) => {
+const upload_new_file = async (database, bucketName, tags, filename, path) => {
     try {
         const client = await connectToMongoDB();
-        const db = client.db('videos');
-        const bucket = new mongodb.GridFSBucket(db);
-        const videoUploadStream = bucket.openUploadStream(filename, { metadata });
-        const videoReadStream = fs.createReadStream(path);
+        const db = client.db(database);
+        const bucket = new mongodb.GridFSBucket(db, { bucketName: bucketName });
+        const fileUploadStream = bucket.openUploadStream(filename, { tags });
+        const fileReadStream = fs.createReadStream(path);
         const uploadPromise = new Promise((resolve, reject) => {
-            videoUploadStream.on('finish', resolve);
-            videoUploadStream.on('error', reject);
+            fileUploadStream.on('finish', resolve);
+            fileUploadStream.on('error', reject);
         });
-        videoReadStream.pipe(videoUploadStream);
+        fileReadStream.pipe(fileUploadStream);
         await uploadPromise;
     } catch (error) {
         throw error;
@@ -28,7 +28,7 @@ const upload_new_video = async (metadata, filename, path) => {
     }
 };
 
-module.exports = { upload_new_video };
+module.exports = { upload_new_file };
 
 
 
